@@ -1,0 +1,10 @@
+[package]
+name = "delay-map"
+authors = ["Devdutt Shenoi <devdutt@outlook.in>"]
+description = "An abstration over DelayQueue that allows you to create a delay, with associated data"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+tokio-stream = "0.1"
+tokio-util = { version = "0.7.2", features = ["time"] }

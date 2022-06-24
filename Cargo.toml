@@ -1,5 +1,5 @@
 [package]
-name = "delay-map"
+name = "delay-handler"
 authors = ["Devdutt Shenoi <devdutt@outlook.in>"]
 description = "An abstration over DelayQueue that allows you to create a delay, with associated data"
 version = "0.1.0"

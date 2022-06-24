@@ -8,62 +8,71 @@ use tokio_util::time::{delay_queue::Key, DelayQueue};
 
 /// An abstration over [`DelayQueue`] that allows you to create a delay, with associated data.
 ///
-/// Users can add data to the delay-map with [`insert()`](DelayMap::insert). The associated data
-/// is removed and returned when delay is timedout by `.await`ing on [`next()`](DelayMap::next).
-/// Users can also prematurely remove the delay from the delay-map with [`remove()`](DelayMap::remove).
+/// Users can add data to the delay-map with [`insert()`](DelayHandler::insert). The associated data
+/// is removed and returned when delay is timedout by `.await`ing on [`next()`](DelayHandler::next).
+/// Users can also prematurely remove the delay from the delay-map with [`remove()`](DelayHandler::remove).
 ///
 /// ### Examples
 /// 1. Insert 3 numbers into delay-map with 10s delays, print them as they timeout
-/// ```rust
-/// # use delay_map::DelayMap;
-/// let mut delay_map = DelayMap::default();
+/// ```no_run
+/// # use delay_handler::DelayHandler;
+/// # use std::time::Duration;
+/// # async fn run() {
+/// let mut handler = DelayHandler::default();
 /// // Adds 1, 2, 3 to the delay-map, each with 10s delay
-/// delay_map.insert(1, Duration::from_secs(10));
-/// delay_map.insert(2, Duration::from_secs(10));
-/// delay_map.insert(3, Duration::from_secs(10));
+/// handler.insert(1, Duration::from_secs(10));
+/// handler.insert(2, Duration::from_secs(10));
+/// handler.insert(3, Duration::from_secs(10));
 ///
 /// // Expect a delay of ~10s, after which 1, 2, 3 should print to stdout, in quick succession.
-/// While let Some(expired) in delay_map.next().await {
+/// while let Some(expired) = handler.next().await {
 ///     println!("{}", expired);
 /// }
+/// # }
 /// ```
 /// 2. Insert 3 numbers into delay-map with different delays, print them as they timeout
-/// ```rust
-/// # use delay_map::DelayMap;
-/// let mut delay_map = DelayMap::default();
+/// ```no_run
+/// # use delay_handler::DelayHandler;
+/// # use std::time::Duration;
+/// # async fn run() {
+/// let mut handler = DelayHandler::default();
 /// // Adds 1, 2 to the delay-map, with different delays
-/// delay_map.insert(1, Duration::from_secs(10));
-/// delay_map.insert(2, Duration::from_secs(5));
+/// handler.insert(1, Duration::from_secs(10));
+/// handler.insert(2, Duration::from_secs(5));
 ///
 /// // With a delay of ~5s between, the prints should come in the order of 2 and 1.
-/// While let Some(expired) in delay_map.next().await {
+/// while let Some(expired) = handler.next().await {
 ///     println!("{}", expired);
 /// }
+/// # }
 /// ```
 ///
 /// 3. Insert 3 numbers into delay-map with different delays, remove  print as delays are timedout
-/// ```rust
-/// # use delay_map::DelayMap;
-/// let mut delay_map = DelayMap::default();
+/// ```no_run
+/// # use delay_handler::DelayHandler;
+/// # use std::time::Duration;
+/// # async fn run() {
+/// let mut handler = DelayHandler::default();
 /// // Adds 1, 2, 3 to the delay-map, each with different delays
-/// delay_map.insert(1, Duration::from_secs(15));
-/// delay_map.insert(2, Duration::from_secs(5));
-/// delay_map.insert(3, Duration::from_secs(10));
-///
+/// handler.insert(1, Duration::from_secs(15));
+/// handler.insert(2, Duration::from_secs(5));
+/// handler.insert(3, Duration::from_secs(10));
+/// 
 /// // Remove 3 from the delay-map
-/// delay_map.remove(&3);
+/// handler.remove(&3);
 ///
 /// // Prints should be in the order of first 2 and ~10s later 1.
-/// While let Some(expired) in delay_map.next().await {
+/// while let Some(expired) = handler.next().await {
 ///     println!("{}", expired);
 /// }
+/// # }
 /// ```
-pub struct DelayMap<T> {
+pub struct DelayHandler<T> {
     queue: DelayQueue<T>,
     map: HashMap<T, Key>,
 }
 
-impl<T> DelayMap<T>
+impl<T> DelayHandler<T>
 where
     T: Eq + Hash + Clone + Display,
 {
@@ -104,10 +113,10 @@ where
     /// Check if queue is empty. Could be used as precondition in an async select operation.
     /// NOTE: The following example assumes usage of `tokio::select`
     ///
-    /// ```no_run
+    /// ```text
     /// select! {
     ///     ...
-    ///     Some(expired) = delay_map.next(), if !delay_map.is_empty() => println!("{}", expired)
+    ///     Some(expired) = handler.next(), if !handler.is_empty() => println!("{}", expired)
     ///     ...
     /// }
     /// ```
@@ -116,7 +125,7 @@ where
     }
 }
 
-impl<T> Default for DelayMap<T>
+impl<T> Default for DelayHandler<T>
 where
     T: Eq + Hash + Clone + Display,
 {
